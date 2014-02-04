@@ -83,6 +83,18 @@ function installSmwByRunningComposerInstallInIt {
 ## Generate LocalSettings
 function configureLocalSettings {
 
+	# Error reporting
+	echo 'error_reporting( E_ALL| E_STRICT );' >> LocalSettings.php
+	echo 'ini_set( "display_errors", 1 );' >> LocalSettings.php
+
+	echo '$wgMessageCacheType = CACHE_NONE;' >> LocalSettings.php
+
+	echo '$wgShowExceptionDetails = true;' >> LocalSettings.php
+	echo '$wgDevelopmentWarnings = true;' >> LocalSettings.php
+	echo '$wgShowSQLErrors = true;' >> LocalSettings.php
+	echo '$wgDebugDumpSql = true;' >> LocalSettings.php
+	echo '$wgShowDBErrorBacktrace = true;' >> LocalSettings.php
+
 	# Namespace related settings
 	echo 'define("NS_TRAVIS", 998);' >> LocalSettings.php
 	echo 'define("NS_TRAVIS_TALK", 999);' >> LocalSettings.php
@@ -95,11 +107,6 @@ function configureLocalSettings {
 	echo '$smwgNamespacesWithSemanticLinks = array( NS_MAIN => true, NS_IMAGE => true, NS_TRAVIS => true );' >> LocalSettings.php
 	echo '$smwgNamespace = "http://example.org/id/";' >> LocalSettings.php
 
-	# Error reporting
-	echo 'error_reporting(E_ALL| E_STRICT);' >> LocalSettings.php
-	echo 'ini_set("display_errors", 1);' >> LocalSettings.php
-	echo '$wgShowExceptionDetails = true;' >> LocalSettings.php
-	echo '$wgDevelopmentWarnings = true;' >> LocalSettings.php
 	echo "putenv( 'MW_INSTALL_PATH=$(pwd)' );" >> LocalSettings.php
 }
 
