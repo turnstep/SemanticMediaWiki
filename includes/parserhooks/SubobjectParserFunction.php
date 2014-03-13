@@ -96,17 +96,12 @@ class SubobjectParserFunction {
 		// Initialize semantic container for a given identifier
 		$this->subobject->setSemanticData( $this->getId( $parameters ) );
 
-		// Add object reference as additional parameter if enabled
-		if ( $this->objectReference ) {
-			$parameters->addParameter(
-				$parameters->getFirst(),
-				$this->parserData->getTitle()->getPrefixedText()
-			);
-		}
-
-		// Add property / values to the subobject instance
-		foreach ( $parameters->toArray() as $property => $values ){
+		foreach ( $this->transformParameters( $parameters ) as $property => $values ){
 			foreach ( $values as $value ) {
+
+				if ( $property === '@sortkey' ) {
+					$property = '_SKEY';
+				}
 
 				$dataValue = DataValueFactory::getInstance()->newPropertyValue(
 						$property,
@@ -118,6 +113,33 @@ class SubobjectParserFunction {
 				$this->subobject->addDataValue( $dataValue );
 			}
 		}
+	}
+
+	protected function transformParameters( ArrayFormatter $parameters ) {
+
+		if ( $this->objectReference ) {
+			$parameters->addParameter(
+				$parameters->getFirst(),
+				$this->parserData->getTitle()->getPrefixedText()
+			);
+		}
+
+		return $this->getSortByReference( $parameters->toArray() );
+	}
+
+	protected function getSortByReference( array $params ) {
+
+		if ( isset( $params['@sortby'] ) ) {
+			$property = array_pop( $params['@sortby'] );
+
+			if ( isset( $params[ $property ] ) ) {
+				$params['@sortkey'] = $params[ $property ];
+			}
+
+			unset( $params['@sortby'] );
+		}
+
+		return $params;
 	}
 
 	/**
