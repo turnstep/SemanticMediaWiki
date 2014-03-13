@@ -6,6 +6,7 @@ use SMW\SubobjectParserFunction;
 use SMW\Subobject;
 use SMW\ParserParameterFormatter;
 use SMW\MessageFormatter;
+use SMW\ParserData;
 
 use SMWDIProperty;
 use SMWDataItem;
@@ -153,6 +154,39 @@ class SubobjectParserFunctionTest extends ParserTestCase {
 		foreach ( $parserData->getData()->getSubSemanticData() as $containerSemanticData ){
 			$this->assertInstanceOf( 'SMWContainerSemanticData', $containerSemanticData );
 			$semanticDataValidator->assertThatPropertiesAreSet( $expected, $containerSemanticData );
+		}
+	}
+
+	/**
+	 * @dataProvider sortParameterProvider
+	 */
+	public function testSortParameterAnnotation( array $parameters, array $expected ) {
+
+		$parserOutput = new ParserOutput();
+		$title        = Title::newFromText( __METHOD__ );
+		$subobject    = new Subobject( $title );
+
+		$instance = $this->newInstance(
+			$subobject,
+			$parserOutput
+		);
+
+		$instance->parse( new ParserParameterFormatter( $parameters ) );
+
+		$parserData = new ParserData(
+			$title,
+			$parserOutput
+		);
+
+		$subSemanticData = $parserData->getSemanticData()->getSubSemanticData();
+
+		$semanticDataValidator = new SemanticDataValidator;
+
+		foreach ( $subSemanticData as $actualSemanticData ){
+			$semanticDataValidator->assertThatPropertiesAreSet(
+				$expected,
+				$actualSemanticData
+			);
 		}
 	}
 
@@ -321,4 +355,125 @@ class SubobjectParserFunctionTest extends ParserTestCase {
 			)
 		);
 	}
+
+	public function sortParameterProvider() {
+
+		$provider = array();
+
+		// #0 @sortkey
+		// {{#subobject:
+		// |Bar=foo Bar
+		// |@sortkey=9999
+		// }}
+		$provider[] = array(
+			array(
+				'Bar=foo Bar',
+				'@sortkey=9999'
+			),
+			array(
+				'propertyCount'  => 2,
+				'properties'     => array(
+					new SMWDIProperty( 'Bar' ),
+					new SMWDIProperty( '_SKEY' )
+				),
+				'propertyValues' => array(
+					'Foo Bar',
+					'9999'
+				)
+			)
+		);
+
+		// #1 @sortby reference being case sensitive
+		// {{#subobject:
+		// |Bar=foo Bar
+		// |@sortby=bar
+		// }}
+		$provider[] = array(
+			array(
+				'Bar=foo Bar',
+				'@sortby=bar' // bar vs. Bar
+			),
+			array(
+				'propertyCount'  => 1,
+				'properties'     => array(
+					new SMWDIProperty( 'Bar' )
+				),
+				'propertyValues' => array(
+					'Foo Bar'
+				)
+			)
+		);
+
+		// #2 @sortby reference value being case sensitive
+		// {{#subobject:
+		// |Bar=foo Bar
+		// |@sortby=Bar
+		// }}
+		$provider[] = array(
+			array(
+				'Bar=foo Bar', // foo Bar vs. Foo Bar
+				'@sortby=Bar'
+			),
+			array(
+				'propertyCount'  => 2,
+				'properties'     => array(
+					new SMWDIProperty( 'Bar' ),
+					new SMWDIProperty( '_SKEY' )
+				),
+				'propertyValues' => array(
+					'Foo Bar',
+					'foo Bar'
+				)
+			)
+		);
+
+		// #3 @sortby precedes @sortkey
+		// {{#subobject:
+		// |Bar=foo Bar
+		// |@sortby=Bar
+		// |@sortkey=1111
+		// }}
+		$provider[] = array(
+			array(
+				'Bar=foo Bar',
+				'@sortby=Bar',
+				'@sortkey=1111'
+			),
+			array(
+				'propertyCount'  => 2,
+				'properties'     => array(
+					new SMWDIProperty( 'Bar' ),
+					new SMWDIProperty( '_SKEY' )
+				),
+				'propertyValues' => array(
+					'Foo Bar',
+					'foo Bar'
+				)
+			)
+		);
+
+		// #4 @sortkey being empty
+		// {{#subobject:
+		// |Bar=foo Bar
+		// |@sortkey=
+		// }}
+		$provider[] = array(
+			array(
+				'Bar=foo Bar',
+				'@sortkey='
+			),
+			array(
+				'propertyCount'  => 1,
+				'properties'     => array(
+					new SMWDIProperty( 'Bar' )
+				),
+				'propertyValues' => array(
+					'Foo Bar'
+				)
+			)
+		);
+
+		return $provider;
+	}
+
 }

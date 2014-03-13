@@ -97,11 +97,12 @@ class SubobjectParserFunction {
 		$this->subobject->setSemanticData( $this->getId( $parameters ) );
 
 		foreach ( $this->transformParameters( $parameters ) as $property => $values ){
-			foreach ( $values as $value ) {
 
-				if ( $property === '@sortkey' ) {
-					$property = '_SKEY';
-				}
+			if ( $property === '@sortkey' ) {
+				$property = '_SKEY';
+			}
+
+			foreach ( $values as $value ) {
 
 				$dataValue = DataValueFactory::getInstance()->newPropertyValue(
 						$property,
