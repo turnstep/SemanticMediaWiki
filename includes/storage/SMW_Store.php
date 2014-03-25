@@ -192,6 +192,8 @@ abstract class Store {
 	 * for one particular subject.
 	 *
 	 * @param $data SMWSemanticData
+	 *
+	 * @return boolean
 	 */
 	public function updateData( SMWSemanticData $data ) {
 		/**
@@ -221,6 +223,7 @@ abstract class Store {
 		 * @since 1.6
 		 */
 		wfRunHooks( 'SMWStore::updateDataAfter', array( $this, $data ) );
+		return true;
 	}
 
 	/**
